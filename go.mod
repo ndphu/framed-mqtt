@@ -2,7 +2,7 @@ module framed
 
 go 1.12
 
-replace gocv.io/x/gocv => D:\\go-path-2\src\\gocv.io\\x\\gocv
+//replace gocv.io/x/gocv => D:\\go-path-2\src\\gocv.io\\x\\gocv
 
 require (
 	github.com/eclipse/paho.mqtt.golang v1.2.0
