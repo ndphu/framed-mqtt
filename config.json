@@ -1,0 +1,5 @@
+{
+	"mqttBroker": "tcp://192.168.26.43:1883",
+	"cameraId": "0",
+	"deviceSerial": "0cbe6348-d3c0-438e-b296-ecad1af3b1b9"
+}

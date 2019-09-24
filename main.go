@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/google/uuid"
 	"gocv.io/x/gocv"
@@ -11,28 +11,51 @@ import (
 	"time"
 )
 
+type Config struct {
+	MQTTBroker   string `json:"mqttBroker"`
+	MQTTUsername string `json:"mqttUsername"`
+	MQTTPassword string `json:"mqttPassword"`
+	CameraId     string `json:"cameraId"`
+	DeviceSerial string `json:"deviceSerial"`
+}
+
+var config Config
+
+func init() {
+	if file, err := os.Open("config.json"); err != nil {
+		log.Fatal("Fail to load config:", err)
+	} else {
+		if err := json.NewDecoder(file).Decode(&config); err != nil {
+			log.Fatal("Fail to load config:", err)
+		} else {
+			validateConfig()
+			log.Println("Config loaded successfully")
+		}
+	}
+}
+
+func validateConfig() {
+	if config.MQTTBroker == "" {
+		log.Panic("Missing MQTTBroker")
+	}
+	if config.CameraId == "" {
+		log.Panic("Missing CameraId")
+	}
+	if config.DeviceSerial == "" {
+		log.Panic("Missing DeviceSerial")
+	}
+}
+
 func main() {
-	cameraId := os.Getenv("CAMERA_ID")
-	if cameraId == "" {
-		cameraId = "0"
-	}
+	broker := config.MQTTBroker
+	deviceSerial := config.DeviceSerial
 
-	broker := os.Getenv("MQTT_BROKER")
-	if broker == "" {
-		broker = "tcp://35.197.155.112:4443"
-	}
-
-	deviceSerial := os.Getenv("DEVICE_SERIAL")
-
-	log.Println("Opening camera with ID", cameraId)
-
-	// open webcam
-	webcam, err := gocv.OpenVideoCapture(cameraId)
+	log.Println("Opening camera with ID", config.CameraId)
+	cam, err := gocv.OpenVideoCapture(config.CameraId)
 	if err != nil {
-		fmt.Printf("Error opening capture device: %v\n", cameraId)
-		return
+		log.Fatalf("Error opening capture device: %s by error: %v\n", config.CameraId, err)
 	}
-	defer webcam.Close()
+	defer cam.Close()
 
 	log.Println("Camera opened successfully.")
 
@@ -59,8 +82,8 @@ func main() {
 	signal.Notify(signalChan, os.Interrupt)
 
 	for {
-		if ok := webcam.Read(&img); !ok {
-			fmt.Printf("Camera closed: %v\n", cameraId)
+		if ok := cam.Read(&img); !ok {
+			log.Fatalf("Camera closed: %s\n", config.CameraId)
 			return
 		}
 		if img.Empty() {
@@ -77,5 +100,4 @@ func main() {
 			continue
 		}
 	}
-
 }
