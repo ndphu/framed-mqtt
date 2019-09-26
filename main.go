@@ -28,9 +28,24 @@ func init() {
 		if err := json.NewDecoder(file).Decode(&config); err != nil {
 			log.Fatal("Fail to load config:", err)
 		} else {
+			loadEnvironmentConfig()
 			validateConfig()
 			log.Println("Config loaded successfully")
 		}
+	}
+}
+
+func loadEnvironmentConfig()  {
+	if envValue := os.Getenv("MQTT_BROKER"); envValue != "" {
+		config.MQTTBroker = envValue
+	}
+
+	if envValue := os.Getenv("CAMERA_ID"); envValue != "" {
+		config.CameraId = envValue
+	}
+
+	if envValue := os.Getenv("DEVICE_SERIAL"); envValue != "" {
+		config.DeviceSerial = envValue
 	}
 }
 
